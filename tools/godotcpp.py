@@ -603,6 +603,12 @@ def _godot_cpp(env):
     library_name = "libgodot-cpp" + env["suffix"] + env["LIBSUFFIX"]
 
     if env["build_library"]:
+        # Large generated builds can exceed the shell command length limit when
+        # archiving the static library. Wrap ARCOM in a tempfile to keep the
+        # invocation portable across platforms.
+        env["ARCOM_POSIX"] = env["ARCOM"].replace("$TARGET", "$TARGET.posix").replace("$SOURCES", "$SOURCES.posix")
+        env["ARCOM"] = "${TEMPFILE(ARCOM_POSIX)}"
+
         library = env.StaticLibrary(target=env.File("bin/%s" % library_name), source=sources)
         env.NoCache(library)
         default_args = [library]
